@@ -1,6 +1,7 @@
-# AI for Environmental Science
+# Practical Machine Learning for Computer Vision
 
 Open-sourced code pertaining to
-Google Research AI projects on environmental science.
+O'Reilly book on Practical Machine Learning for Computer Vision
+
 
 ** This is not an official Google product **
