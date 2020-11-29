@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Posenet Demo</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet"></script>
+</head>
+<body>
+     <p>
+         Posenet is being invoked on this image. View source on this page to see the script.
+     </p>
+     <p>
+         <b>Note: </b> If nothing shows up, click on Inspect and view the console.
+         You may need to click on the settings gear icon in the Inspect mode and:
+         <ol>
+         <li> Uncheck enable Javascript source maps</li>
+         <li>Uncheck enable CSS source map</li>
+         </ol>
+     </p>
+     <img id='input_img' src="bowling.jpg" height="498" width="818" />
+     <h3>Output Canvas</h3>
+     <canvas id="output_canvas" height="498" width="818"></canvas>
+     <h3>JSON</h3>
+     <p id="output_json"> Waiting for Posenet ... </p>
+</body>
+<script>
+    var imageElement = document.getElementById('input_img');
+    var canvas = document.getElementById("output_canvas");
+    var context = canvas.getContext("2d");
+    context.drawImage(imageElement, 0, 0);
+
+    posenet.load().then(function(net) {
+      const pose = net.estimateSinglePose(imageElement, {
+        flipHorizontal: false
+      });
+      return pose;
+    }).then(function(pose){
+      console.log(pose);
+      document.getElementById('output_json').innerHTML = "<pre>" + JSON.stringify(pose, null, 2) + "</pre>";
+      for (var i = 0; i < pose.keypoints.length; i++) {
+        var markerText = pose.keypoints[i].part;
+        var markerX = pose.keypoints[i].position.x;
+        var markerY = pose.keypoints[i].position.y;
+
+        // Background box for text
+        var textMeasurements = context.measureText(markerText);
+        context.fillStyle = "#666";
+        context.globalAlpha = 0.7;
+        context.fillRect(markerX - (textMeasurements.width / 2), markerY - 15, textMeasurements.width, 20);
+        context.globalAlpha = 1;
+
+        // Text 
+        context.fillStyle = "#000";
+        context.fillText(markerText, markerX, markerY);
+      }
+    })
+</script>
+</html>
