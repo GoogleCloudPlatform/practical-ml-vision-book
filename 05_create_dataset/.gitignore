@@ -2,3 +2,4 @@
 flower_images
 label.json
 output
+__pycache*
