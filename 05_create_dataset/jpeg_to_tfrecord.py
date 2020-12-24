@@ -14,7 +14,7 @@ convert the images to lie in [-1, 1] range and resize them.
 Modify the constants and TF Record format as needed.
 
 Example usage:
-python -m jpeg_to_tfrecord.py \
+python3 -m jpeg_to_tfrecord \
        --all_data gs://cloud-ml-data/img/flower_photos/all_data.csv \
        --labels_file gs://cloud-ml-data/img/flower_photos/dict.txt \
        --project_id $PROJECT \
