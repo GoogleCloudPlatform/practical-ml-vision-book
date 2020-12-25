@@ -109,6 +109,7 @@ if __name__ == '__main__':
     on_cloud = OUTPUT_DIR.startswith('gs://')
     if arguments['runner']:
         RUNNER = arguments['runner']
+        on_cloud = (RUNNER == 'DataflowRunner')
     else:
         RUNNER = 'DataflowRunner' if on_cloud else 'DirectRunner'
 
