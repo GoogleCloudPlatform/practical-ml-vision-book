@@ -35,35 +35,43 @@ import apache_beam as beam
 import tensorflow as tf
 import numpy as np
 
+IMG_WIDTH, IMG_HEIGHT = 0,0  # no resizing
 
-def _bytes_feature(value):
-    return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+@tf.function
+def _string_feature(value):
+    return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value.encode('utf-8')]))
 
+@tf.function
 def _int64_feature(value):
-    return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
+    return tf.train.Feature(int64_list=tf.train.Int64List(value=value))
 
-def _float_array_feature(value):
+@tf.function
+def _float_feature(value):
     return tf.train.Feature(float_list=tf.train.FloatList(value=value))
 
+@tf.function
 def read_and_decode(filename):
-    IMG_HEIGHT = 224
-    IMG_WIDTH = 224
     IMG_CHANNELS = 3
     img = tf.io.read_file(filename)
     img = tf.image.decode_jpeg(img, channels=IMG_CHANNELS)
     img = tf.image.convert_image_dtype(img, tf.float32)
-    img = tf.image.resize(img, [IMG_WIDTH, IMG_HEIGHT])
-    return tf.reshape(img, [-1]) # flatten to 1D array
+    if IMG_WIDTH > 0 and IMG_HEIGHT > 0:
+        img = tf.image.resize(img, [IMG_WIDTH, IMG_HEIGHT])
+    return img
 
+@tf.function
 def create_tfrecord(filename, label, label_int):
     img = read_and_decode(filename)
+    dims = img.shape
+    img = tf.reshape(img, [-1]) # flatten to 1D array
     return tf.train.Example(features=tf.train.Features(feature={
-        'image': _float_array_feature(img),
-        'label': _bytes_feature(label.encode('utf-8')),
-        'label_int': _int64_feature(label_int)
+        'image': _float_feature(img),
+        'shape': _int64_feature(dims),
+        'label': _string_feature(label),
+        'label_int': _int64_feature([label_int])
     })).SerializeToString()
 
-
+@tf.function
 def assign_record_to_split(rec):
     rnd = np.random.rand()
     if rnd < 0.8:
@@ -92,6 +100,10 @@ if __name__ == '__main__':
     parser.add_argument(
         '--runner',
         help='If omitted, uses DataFlowRunner if output_dir starts with gs://',
+        default=None)
+    parser.add_argument(
+        '--resize',
+        help='Specify the img_width,img_height that you want images resized. If omitted, images are written as is.',
         default=None)
     parser.add_argument(
         '--output_dir', help='Top-level directory for TF Records', required=True)
@@ -123,7 +135,12 @@ if __name__ == '__main__':
     else:
         shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
         os.makedirs(OUTPUT_DIR)
-                          
+   
+    # Use eager execution in DirectRunner, but @tf.function in DataflowRunner
+    # See https://www.tensorflow.org/guide/function
+    print(tf.__version__)
+    tf.config.run_functions_eagerly(not on_cloud)
+
     # read list of labels
     with tf.io.gfile.GFile(arguments['labels_file'], 'r') as f:
         LABELS = [line.rstrip() for line in f]
@@ -133,6 +150,13 @@ if __name__ == '__main__':
         print('Require at least two labels')
         sys.exit(-1)
 
+    # should we resize the input images?
+    if arguments['resize']:
+        wd, ht = arguments['resize'].split(',')
+        IMG_WIDTH = int(wd)
+        IMG_HEIGHT = int(ht)
+        print("Will resize input images to {}x{}".format(IMG_WIDTH, IMG_HEIGHT))
+        
     # make it repeatable
     np.random.seed(10)
 
