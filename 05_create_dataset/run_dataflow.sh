@@ -7,9 +7,9 @@ INPUT=gs://cloud-ml-data/img/flower_photos/all_data.csv
 OUTPUT=gs://${BUCKET}/data/flower_tfrecords
 
 ## To run locally, uncomment these lines
-gsutil cat $INPUT | head -10 > /tmp/top.csv
-INPUT=/tmp/top.csv
-OUTPUT=./flower_images
+#gsutil cat $INPUT | head -5 > /tmp/top.csv
+#INPUT=/tmp/top.csv
+#OUTPUT=./flower_images
 
 # Run
 echo "INPUT=$INPUT OUTPUT=$OUTPUT"
