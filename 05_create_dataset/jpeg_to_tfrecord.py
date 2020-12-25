@@ -157,7 +157,8 @@ if __name__ == '__main__':
 
         for split in ['train', 'valid', 'test']:
             _ = (splits
-                 | 'get_{}'.format(split) >> beam.Filter(lambda x: x[0] == split)
+                 | 'only_{}'.format(split) >> beam.Filter(lambda x: x[0] == split)
+                 | '{}_records'.format(split) >> beam.Map(lambda x: x[1])
                  | 'write_{}'.format(split) >> beam.io.tfrecordio.WriteToTFRecord(
                         os.path.join(OUTPUT_DIR, split))
                  )
@@ -165,4 +166,5 @@ if __name__ == '__main__':
         if on_cloud:
             print("Submitting {} job: {}".format(RUNNER, JOBNAME))
             print("Monitor at https://console.cloud.google.com/dataflow/jobs")
-            
+        else:
+            print("Running on DirectRunner. Please hold on ...")
