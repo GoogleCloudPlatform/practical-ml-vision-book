@@ -52,7 +52,7 @@ def read_and_decode(filename):
     img = tf.image.decode_jpeg(img, channels=IMG_CHANNELS)
     img = tf.image.convert_image_dtype(img, tf.float32)
     if IMG_WIDTH > 0 and IMG_HEIGHT > 0:
-        img = tf.image.resize(img, [IMG_WIDTH, IMG_HEIGHT])
+        img = tf.image.resize(img, [IMG_HEIGHT, IMG_WIDTH])
     return img
 
 def create_tfrecord(filename, label, label_int):
@@ -115,7 +115,7 @@ if __name__ == '__main__':
         default='us-central1')
     parser.add_argument(
         '--resize',
-        help='Specify the img_width,img_height that you want images resized. If omitted, images are written as is.',
+        help='Specify the img_height,img_width that you want images resized. If omitted, images are written as is.',
         default=None)
     parser.add_argument(
         '--output_dir', help='Top-level directory for TF Records', required=True)
@@ -164,10 +164,10 @@ if __name__ == '__main__':
 
     # should we resize the input images?
     if arguments['resize']:
-        wd, ht = arguments['resize'].split(',')
-        IMG_WIDTH = int(wd)
+        ht, wd = arguments['resize'].split(',')
         IMG_HEIGHT = int(ht)
-        print("Will resize input images to {}x{}".format(IMG_WIDTH, IMG_HEIGHT))
+        IMG_WIDTH = int(wd)
+        print("Will resize input images to {}x{}".format(IMG_HEIGHT, IMG_WIDTH))
         
     # make it repeatable
     np.random.seed(10)
