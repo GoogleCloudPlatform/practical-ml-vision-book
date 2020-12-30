@@ -82,11 +82,13 @@ def yield_records_for_split(x, desired_split):
         yield rec
 
 def write_records(OUTPUT_DIR, splits, split):
+    nshards = 80 if (split == 'train') else 20
     _ = (splits
          | 'only_{}'.format(split) >> beam.FlatMap(
              lambda x: yield_records_for_split(x, split))
          | 'write_{}'.format(split) >> beam.io.tfrecordio.WriteToTFRecord(
-             os.path.join(OUTPUT_DIR, split))
+             os.path.join(OUTPUT_DIR, split),
+             file_name_suffix='.gz', num_shards=nshards)
         )
         
 if __name__ == '__main__':
@@ -178,6 +180,7 @@ if __name__ == '__main__':
         'temp_location': os.path.join(OUTPUT_DIR, 'tmp'),
         'job_name': JOBNAME,
         'project': PROJECT,
+        'max_num_workers': 20, # autoscale up to 20
         'region': arguments['region'],
         'teardown_policy': 'TEARDOWN_ALWAYS',
         'save_main_session': True
