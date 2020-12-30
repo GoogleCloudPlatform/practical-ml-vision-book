@@ -82,7 +82,9 @@ def yield_records_for_split(x, desired_split):
         yield rec
 
 def write_records(OUTPUT_DIR, splits, split):
-    nshards = 80 if (split == 'train') else 20
+    # same 80:10:10 split
+    # The flowers dataset takes about 1GB, so 20 files means 50MB each
+    nshards = 16 if (split == 'train') else 2
     _ = (splits
          | 'only_{}'.format(split) >> beam.FlatMap(
              lambda x: yield_records_for_split(x, split))
