@@ -29,6 +29,14 @@ def train_and_evaluate(strategy, opts):
         IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS
     ).batch(opts['batch_size'])
 
+    # if number of training examples per epoch is specified
+    # repeat the training dataset indefinitely
+    num_steps_per_epoch = None
+    if (opts['num_training_examples'] > 0):
+        train_dataset = train_dataset.repeat()
+        num_steps_per_epoch = opts['num_training_examples'] // opts['batch_size']
+        print("Will train for {} steps".format(num_steps_per_epoch))
+    
     # checkpoint and early stopping callbacks
     model_checkpoint_cb = tf.keras.callbacks.ModelCheckpoint(
         filepath=os.path.join(opts['outdir'], 'chkpts'),
@@ -50,6 +58,7 @@ def train_and_evaluate(strategy, opts):
     history = model.fit(train_dataset, 
                         validation_data=eval_dataset,
                         epochs=opts['num_epochs'],
+                        steps_per_epoch=num_steps_per_epoch,
                         callbacks=[model_checkpoint_cb, early_stopping_cb]
                        )
     training_plot(['loss', 'accuracy'], history, 
@@ -69,6 +78,10 @@ if __name__ == '__main__':
     parser.add_argument(
         '--num_epochs', help='How many times to iterate over training patterns',
         default=3, type=int)
+    parser.add_argument(
+        '--num_training_examples', 
+        help='Number of examples to term as a virtual epoch. If not specified, will use actual number of examples.',
+        default=-1, type=int)
     parser.add_argument(
         '--distribute', default='gpus_one_machine',
         help="""
