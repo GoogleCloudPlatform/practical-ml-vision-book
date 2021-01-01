@@ -1,0 +1,41 @@
+trainingInput:
+  scaleTier: CUSTOM
+  masterType: n1-standard-4  # or n1-highcpu-16 
+  masterConfig:
+    acceleratorConfig:
+      count: 2
+      type: NVIDIA_TESLA_T4
+  hyperparameters:
+    goal: MAXIMIZE
+    hyperparameterMetricTag: accuracy
+    maxTrials: 50
+    maxParallelTrials: 2
+    enableTrialEarlyStopping: True
+    params:
+    - parameterName: l2
+      type: DOUBLE
+      minValue: 0
+      maxValue: 0.2
+      scaleType: UNIT_LINEAR_SCALE
+    - parameterName: batch_size
+      type: DISCRETE
+      discreteValues:
+      - 16
+      - 32
+      - 64
+    - parameterName: num_hidden
+      type: DISCRETE
+      discreteValues:
+      - 8
+      - 16
+      - 24
+    - parameterName: with_color_distort
+      type: DISCRETE
+      discreteValues:
+      - False
+      - True
+    - parameterName: crop_ratio
+      type: DOUBLE
+      minValue: 0.5
+      maxValue: 0.8
+      scaleType: UNIT_LINEAR_SCALE   

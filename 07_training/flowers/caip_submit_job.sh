@@ -25,8 +25,13 @@ DISTR="gpus_one_machine"
 CONFIG=${DISTR}.yaml
 
 # hyperparameter tuning
-CONFIG=hparam.yaml
+#CONFIG=hparam.yaml
+#DISTR="gpus_one_machine"
+
+# hyperparameter tuning
+CONFIG=hparam-continue.yaml  # note job identifier here
 DISTR="gpus_one_machine"
+EXTRAS="--l2 0 --with_color_distort False"
 
 gcloud ai-platform jobs submit training ${JOB_NAME}_${DISTR} \
         --config ${CONFIG} --region ${REGION} \

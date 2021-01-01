@@ -82,10 +82,11 @@ def train_and_evaluate(strategy, opts):
     # report hyperparam metric
     hpt = hypertune.HyperTune()
     accuracy = np.max(history.history['val_accuracy']) # highest encountered
+    nepochs = len(history.history['val_accuracy'])
     hpt.report_hyperparameter_tuning_metric(
         hyperparameter_metric_tag='accuracy',
         metric_value=accuracy,
-        global_step=1000)
+        global_step=nepochs)
     print("Reported hparam metric name=accuracy value={}".format(accuracy))
     
     return model
