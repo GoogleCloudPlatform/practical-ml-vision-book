@@ -3,12 +3,12 @@ trainingInput:
   masterType: n1-standard-4  # or n1-highcpu-16 
   masterConfig:
     acceleratorConfig:
-      count: 4
+      count: 1
       type: NVIDIA_TESLA_T4
-  # Configure 2 workers, each with 4 T4 GPUs
-  workerCount: 92
+  # Configure 2 workers, each with 1 T4 GPUs
+  workerCount: 2
   workerType: n1-standard-4
   workerConfig:
     acceleratorConfig:
-      count: 4
+      count: 2
       type: NVIDIA_TESLA_T4

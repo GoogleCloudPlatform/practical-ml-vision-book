@@ -6,4 +6,4 @@ trainingInput:
   workerConfig:
     acceleratorConfig:
       type: TPU_V2
-      count: 4
+      count: 8

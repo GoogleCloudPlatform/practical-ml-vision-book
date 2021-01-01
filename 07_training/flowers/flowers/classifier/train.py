@@ -104,7 +104,7 @@ if __name__ == '__main__':
     
     # able to resume
     if not opts['resume']:
-        cleanup_dir(opts['outdir'])
+        cleanup_dir(os.path.join(opts['outdir'], 'chkpts'))
     
     # Train, evaluate, export
     strategy = create_strategy(opts['distribute'])  # has to be first/early call in program

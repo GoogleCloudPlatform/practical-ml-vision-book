@@ -32,7 +32,7 @@ def create_strategy(mode):
     If you are using TPUs, this methods has to be the very first thing you do.
     """
     if mode == 'cpu':
-        return tf.distribute.OneDeviceStrategy()
+        return tf.distribute.OneDeviceStrategy('/cpu:0')
     
     if mode == 'gpus_one_machine':
         print('Using {} GPUs'.format(len(tf.config.experimental.list_physical_devices("GPU"))))
@@ -40,7 +40,7 @@ def create_strategy(mode):
     
     if mode == 'gpus_multiple_machines':
         print("Using TFCONFIG=", os.environ["TF_CONFIG"])
-        return tf.distribute.MultiWorkerMirroredStrategy()
+        return tf.distribute.experimental.MultiWorkerMirroredStrategy()
     
     # treat as tpu
     if mode == 'tpu_colab':

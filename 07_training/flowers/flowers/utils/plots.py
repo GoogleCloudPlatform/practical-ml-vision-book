@@ -8,7 +8,7 @@
 
 import matplotlib.pylab as plt
 import numpy as np
-import os, shutil, tempfile
+import os, shutil, tempfile, subprocess
 
 def training_plot(metrics, history, filename):
     f, ax = plt.subplots(1, len(metrics), figsize=(5*len(metrics), 5))
