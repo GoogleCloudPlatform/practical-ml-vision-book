@@ -11,15 +11,25 @@ import tensorflow as tf
 import tensorflow_hub as hub
 import os, shutil
 import argparse
+import hypertune
+from distutils.util import strtobool
 from tensorflow.data.experimental import AUTOTUNE     
 
 from flowers.utils.util import cleanup_dir, create_strategy
 from flowers.ingest.tfrecords import *
 from flowers.classifier.model import *
 from flowers.utils.plots import *
-from flowers.classifier.model import IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS
+from flowers.classifier.model import MODEL_IMG_SIZE
 
 def train_and_evaluate(strategy, opts):
+    # calculate the image dimensions given that we have to center crop
+    # to achieve the model image size
+    IMG_HEIGHT = IMG_WIDTH = round(MODEL_IMG_SIZE / opts['crop_ratio'])
+    print('Will pad input images to {}x{}, then crop them to {}x{}'.format(
+        IMG_HEIGHT, IMG_WIDTH, MODEL_IMG_SIZE, MODEL_IMG_SIZE
+    ))
+    IMG_CHANNELS = 3
+
     train_dataset = create_preproc_dataset(
         'gs://practical-ml-vision-book/flowers_tfr/train' + opts['pattern'],
         IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS
@@ -48,7 +58,7 @@ def train_and_evaluate(strategy, opts):
     
     # model training
     with strategy.scope():
-        model = create_model(opts)
+        model = create_model(opts, IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS)
     model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=opts['lrate']),
                   loss=tf.keras.losses.SparseCategoricalCrossentropy(
                       from_logits=False),
@@ -63,6 +73,21 @@ def train_and_evaluate(strategy, opts):
                        )
     training_plot(['loss', 'accuracy'], history, 
                   os.path.join(opts['outdir'], 'training_plot.png'))
+    
+    # export the model
+    export_model(model, 
+                 opts['outdir'],
+                 IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS)
+    
+    # report hyperparam metric
+    hpt = hypertune.HyperTune()
+    accuracy = np.max(history.history['val_accuracy']) # highest encountered
+    hpt.report_hyperparameter_tuning_metric(
+        hyperparameter_metric_tag='accuracy',
+        metric_value=accuracy,
+        global_step=1000)
+    print("Reported hparam metric name=accuracy value={}".format(accuracy))
+    
     return model
 
 
@@ -107,6 +132,11 @@ if __name__ == '__main__':
         '--lrate', help='Adam learning rate', default=0.001, type=float)
     parser.add_argument(
         '--num_hidden', help='Number of nodes in last but one layer', default=16, type=int)
+    parser.add_argument(
+        '--crop_ratio', help='Images are center-cropped to this ratio', default=0.5, type=float)
+    parser.add_argument('--with_color_distort',
+                        type=lambda x: bool(strtobool(x)), nargs='?', const=True, default=True,
+                        help="Specify True or False. Default is True.")
 
     # parse arguments, and set up outdir based on job-dir
     # job-dir is set by CAIP, but outdir is what our code wants.
@@ -121,6 +151,4 @@ if __name__ == '__main__':
     
     # Train, evaluate, export
     strategy = create_strategy(opts['distribute'])  # has to be first/early call in program
-    model = train_and_evaluate(strategy, opts)
-    export_model(model, opts['outdir'])
-    
+    train_and_evaluate(strategy, opts)

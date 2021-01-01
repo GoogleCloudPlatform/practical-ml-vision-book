@@ -17,24 +17,30 @@ from flowers.utils.augment import *
 from flowers.utils.util import cleanup_dir
 from flowers.ingest.tfrecords import create_preproc_image
 
-IMG_HEIGHT = IMG_WIDTH = 448
-IMG_CHANNELS = 3   
 CLASS_NAMES = 'daisy dandelion roses sunflowers tulips'.split()
+MODEL_IMG_SIZE = 224 # What mobilenet expects
 
-def create_model(opts):
+def create_model(opts, IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS):
     regularizer = tf.keras.regularizers.l1_l2(opts['l1'] or 0, opts['l2'] or 0)
-        
+    
     layers = [
       tf.keras.layers.experimental.preprocessing.RandomCrop(
-          height=IMG_HEIGHT//2, width=IMG_WIDTH//2,
+          height=MODEL_IMG_SIZE, width=MODEL_IMG_SIZE,
           input_shape=(IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS),
           name='random/center_crop'
       ),
       tf.keras.layers.experimental.preprocessing.RandomFlip(
           mode='horizontal',
           name='random_lr_flip/none'
-      ),
-      RandomColorDistortion(name='random_contrast_brightness/none'),
+      )
+    ]
+    
+    if opts['with_color_distort']:
+        layers.append(
+            RandomColorDistortion(name='random_contrast_brightness/none')
+        )
+    
+    layers += [
       hub.KerasLayer(
           "https://tfhub.dev/google/tf2-preview/mobilenet_v2/feature_vector/4", 
           trainable=False,
@@ -61,7 +67,7 @@ def create_model(opts):
     # create model
     return tf.keras.Sequential(layers, name='flower_classification')
 
-def export_model(model, outdir):
+def export_model(model, outdir, IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS):
     def create_preproc_image_of_right_size(filename):
         return create_preproc_image(filename, IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS)
 
