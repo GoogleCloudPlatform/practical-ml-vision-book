@@ -23,7 +23,7 @@ def cleanup_dir(OUTPUT_DIR):
 def create_strategy(mode):
     """
     mode has be to be one of the following:
-    * None (one device is used)
+    * cpu
     * gpus_one_machine
     * gpus_multiple_machines
     * tpu_colab
@@ -31,7 +31,7 @@ def create_strategy(mode):
     * the actual name of the cloud_tpu
     If you are using TPUs, this methods has to be the very first thing you do.
     """
-    if not mode:
+    if mode == 'cpu':
         return tf.distribute.OneDeviceStrategy()
     
     if mode == 'gpus_one_machine':

@@ -73,6 +73,7 @@ if __name__ == '__main__':
         '--distribute', default='gpus_one_machine',
         help="""
             Has to be one of:
+            * cpu
             * gpus_one_machine
             * gpus_multiple_machines
             * tpu_colab
@@ -100,6 +101,8 @@ if __name__ == '__main__':
     opts = args.__dict__
     opts['outdir'] = opts['job_dir']
     print("Job Parameters={}".format(opts))
+    
+    # able to resume
     if not opts['resume']:
         cleanup_dir(opts['outdir'])
     

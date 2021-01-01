@@ -1,0 +1,4 @@
+trainingInput:
+  scaleTier: CUSTOM           
+  masterType: n1-standard-4
+  

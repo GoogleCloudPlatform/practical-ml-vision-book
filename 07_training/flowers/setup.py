@@ -6,12 +6,12 @@
 # OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='flowers',
     version='1.0',
-    packages=['flowers'],
+    packages=find_packages(),
     author='Practical ML Vision Book',
     author_email='abc@nosuchdomain.com',
     install_requires=['python-package-example']

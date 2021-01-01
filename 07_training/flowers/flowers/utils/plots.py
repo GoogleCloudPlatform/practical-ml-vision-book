@@ -8,10 +8,7 @@
 
 import matplotlib.pylab as plt
 import numpy as np
-import tensorflow as tf
-import tensorflow_hub as hub
-import os, shutil
-from tensorflow.data.experimental import AUTOTUNE
+import os, shutil, tempfile
 
 def training_plot(metrics, history, filename):
     f, ax = plt.subplots(1, len(metrics), figsize=(5*len(metrics), 5))
@@ -21,5 +18,15 @@ def training_plot(metrics, history, filename):
         ax[idx].set_ylabel(metric)
         ax[idx].plot(history.history['val_' + metric]);
         ax[idx].legend([metric, 'val_' + metric])
-    plt.savefig(filename)
-
+    
+    on_cloud = filename.startswith('gs://')
+    if on_cloud:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpfilename = os.path.join(tmpdir, "out.png")
+            plt.savefig(tmpfilename)
+            subprocess.check_call('gsutil cp {} {}'.format(
+                tmpfilename, filename).split())
+    else:
+        plt.savefig(filename)
+    
+        
