@@ -22,4 +22,4 @@ gcloud ai-platform local train \
         --num_epochs=3 --l2 0 --with_color_distort False --crop_ratio 0.8
 
 mkdir -p $(dirname $COMPONENT_OUT)
-echo "$JOB_DIR" > $COMPONENT_OUT
+echo "${JOB_DIR}/flowers_model" > $COMPONENT_OUT

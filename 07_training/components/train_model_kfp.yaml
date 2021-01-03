@@ -5,7 +5,7 @@ inputs:
 - {name: region, type: str, description: 'Region (ignored)'}
 - {name: job_dir, type: GCSPath, description: 'Top-level output directory'}
 outputs:
-- {name: output_dir, type: GCSPath, description: 'location of trained model'}
+- {name: trained_model, type: GCSPath, description: 'location of trained model'}
 implementation:
   container:
     image: gcr.io/ai-analytics-solutions/practical-ml-vision-book:latest
@@ -16,5 +16,5 @@ implementation:
         {inputValue: input_topdir},
         {inputValue: region},
         {inputValue: job_dir},
-        {outputPath: output_dir},
+        {outputPath: trained_model},
     ]

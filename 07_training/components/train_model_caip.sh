@@ -29,4 +29,4 @@ gcloud ai-platform jobs submit training ${JOB_NAME}_${DISTR} \
         --num_epochs=20 --distribute $DISTR --l2 0 --with_color_distort False
 
 mkdir -p $(dirname $COMPONENT_OUT)
-echo "$JOB_DIR" > $COMPONENT_OUT
+echo "${JOB_DIR}/flowers_model" > $COMPONENT_OUT
