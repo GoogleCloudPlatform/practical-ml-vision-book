@@ -52,6 +52,7 @@ def create_preproc_dataset(pattern, IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS):
     preproc = _Preprocessor(IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS)
     files = [filename for filename 
              in tf.random.shuffle(tf.io.gfile.glob(pattern))]
+    
     if len(files) > 1:
         print("Interleaving the reading of {} files.".format(len(files)))
         def _create_half_ds(x):
@@ -64,8 +65,9 @@ def create_preproc_dataset(pattern, IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS):
         trainds = tf.data.Dataset.range(2).interleave(
             _create_half_ds, num_parallel_calls=AUTOTUNE)
     else:
+        print("WARNING! Only {} files match {}".format(len(files), pattern))
         trainds = tf.data.TFRecordDataset(files,
-                                         compression_type='GZIP')
+                                          compression_type='GZIP')
     def _preproc_img_label(img, label):
         return (preproc.preprocess(img), label)
     

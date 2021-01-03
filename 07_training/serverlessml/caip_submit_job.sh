@@ -39,6 +39,7 @@ gcloud ai-platform jobs submit training ${JOB_NAME}_${DISTR} \
         --module-name $MODULE_NAME \
         --job-dir ${JOB_DIR}_${DISTR} \
         --runtime-version 2.3 --python-version 3.7 \
+        --stream-logs \
         -- \
         --pattern='-*' \
         --num_epochs=20 --distribute $DISTR $EXTRAS

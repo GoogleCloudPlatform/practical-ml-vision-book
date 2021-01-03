@@ -31,11 +31,11 @@ def train_and_evaluate(strategy, opts):
     IMG_CHANNELS = 3
 
     train_dataset = create_preproc_dataset(
-        'gs://practical-ml-vision-book/flowers_tfr/train' + opts['pattern'],
+        os.path.join(opts['input_topdir'], 'train' + opts['pattern']),
         IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS
     ).batch(opts['batch_size'])
     eval_dataset = create_preproc_dataset(
-        'gs://practical-ml-vision-book/flowers_tfr/valid' + opts['pattern'],
+        os.path.join(opts['input_topdir'], 'valid' + opts['pattern']),
         IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS
     ).batch(opts['batch_size'])
 
@@ -99,7 +99,11 @@ if __name__ == '__main__':
     parser.add_argument(
         '--job-dir', help='Top-level output directory', required=True)
     parser.add_argument(
-        '--pattern', help='Files in gs://practical-ml-vision-book/flowers_tfr/train to read',
+        '--input_topdir', help='Top-level directory of the TF Records',
+        default='gs://practical-ml-vision-book/flowers_tfr'
+    )
+    parser.add_argument(
+        '--pattern', help='Files in {input_topdir}/train to read',
         default='-0000[01]-*')
     parser.add_argument(
         '--num_epochs', help='How many times to iterate over training patterns',

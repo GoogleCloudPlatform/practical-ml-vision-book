@@ -1,1 +1,0 @@
-../../../05_create_dataset/jpeg_to_tfrecord.py

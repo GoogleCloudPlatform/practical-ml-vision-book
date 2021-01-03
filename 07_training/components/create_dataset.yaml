@@ -1,0 +1,27 @@
+name: create_dataset
+description: Converts JPEG files to TensorFlow Records using Dataflow or Apache Beam
+inputs:
+- {name: runner, type: str, default: 'DirectRunner', description: 'DirectRunner or DataflowRunner'}
+- {name: project_id, type: str, description: 'Project to bill Dataflow job to'}
+- {name: region, type: str, description: 'Region to run Dataflow job in'}
+- {name: input_csv, type: GCSPath, description: 'Path to CSV file'}
+- {name: output_dir, type: GCSPath, description: 'Top-level directory for TF records'}
+- {name: labels_dict, type: GCSPath, description: 'Dictionary file for class names'}
+outputs:
+- {name: tfrecords_topdir, type: GCSPath, description: 'Top-level directory for TF records'}
+implementation:
+  container:
+    image: gcr.io/ai-analytics-solutions/practical-ml-vision-book:latest
+    command: [
+        "bash", "/src/practical-ml-vision-book/07_training/components/create_dataset.sh"
+    ]
+    args: [
+        {inputValue: output_dir},
+        {outputPath: tfrecords_topdir},
+        "--all_data", {inputValue: input_csv},
+        "--labels_file", {inputValue: labels_dict},
+        "--project_id", {inputValue: project_id},
+        "--output_dir", {inputValue: output_dir},
+        "--runner", {inputValue: runner},
+        "--region", {inputValue: region},
+    ]
