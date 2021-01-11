@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Copyright 2020 Google Inc. Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy of the License at
 # http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law or agreed to in writing,
@@ -9,16 +11,17 @@ r"""
 
 Apache Beam pipeline to create TFRecord files from JPEG files stored on GCS.
 This pipeline will split the data 80:10:10,
-convert the images to lie in [-1, 1] range and store them in original size.
+convert the images to lie in [-1, 1] range and resize them.
 
 Modify the constants and TF Record format as needed.
 
 Example usage:
-python3 -m jpeg_to_tfrecord \
+python3 -m jpeg_to_tfrecord_tft \
        --all_data gs://cloud-ml-data/img/flower_photos/all_data.csv \
        --labels_file gs://cloud-ml-data/img/flower_photos/dict.txt \
        --project_id $PROJECT \
-       --output_dir gs://${BUCKET}/data/flower_tfrecords
+       --output_dir gs://${BUCKET}/data/flower_tfrecords \
+       --resize 224,224
 
 The format of the CSV files is:
     URL-of-image,label
@@ -31,9 +34,12 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 import apache_beam as beam
 import tensorflow as tf
 import numpy as np
+import tensorflow_transform as tft
+import tensorflow_transform.beam as tft_beam
 
 def _string_feature(value):
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value.encode('utf-8')]))
@@ -44,21 +50,21 @@ def _int64_feature(value):
 def _float_feature(value):
     return tf.train.Feature(float_list=tf.train.FloatList(value=value))
 
-def read_and_decode(filename):
+def tft_preprocess(img, label):
+    print(filename)
     IMG_CHANNELS = 3
-    img = tf.io.read_file(filename)
     img = tf.image.decode_jpeg(img, channels=IMG_CHANNELS)
     img = tf.image.convert_image_dtype(img, tf.float32)
-    return img
-
-def create_tfrecord(filename, label, label_int):
-    print(filename)
-    img = read_and_decode(filename)
-    dims = img.shape
+    img = tf.image.resize_with_pad(img, IMG_HEIGHT, IMG_WIDTH)
     img = tf.reshape(img, [-1]) # flatten to 1D array
+    return img, label
+
+def read_image(filename):
+    return tf.io.read_file(filename)
+
+def create_tfrecord(img, label, label_int):
     return tf.train.Example(features=tf.train.Features(feature={
         'image': _float_feature(img),
-        'shape': _int64_feature([dims[0], dims[1], dims[2]]),
         'label': _string_feature(label),
         'label_int': _int64_feature([label_int])
     })).SerializeToString()
@@ -114,6 +120,10 @@ if __name__ == '__main__':
         help='Cloud Region to run in. Ignored for DirectRunner',
         default='us-central1')
     parser.add_argument(
+        '--resize',
+        help='Specify the img_height,img_width that you want images resized.',
+        default='224,224')
+    parser.add_argument(
         '--output_dir', help='Top-level directory for TF Records', required=True)
 
     args = parser.parse_args()
@@ -157,6 +167,12 @@ if __name__ == '__main__':
     if len(LABELS) < 2:
         print('Require at least two labels')
         sys.exit(-1)
+
+    # resize the input images
+    ht, wd = arguments['resize'].split(',')
+    IMG_HEIGHT = int(ht)
+    IMG_WIDTH = int(wd)
+    print("Will resize input images to {}x{}".format(IMG_HEIGHT, IMG_WIDTH))
         
     # make it repeatable
     np.random.seed(10)
@@ -175,9 +191,24 @@ if __name__ == '__main__':
     opts = beam.pipeline.PipelineOptions(flags=[], **options)
 
     with beam.Pipeline(RUNNER, options=opts) as p:
-        splits = (p
+      with tft_beam.Context(temp_dir=tempfile.mkdtemp()):
+        img_labels = (p
                   | 'read_csv' >> beam.io.ReadFromText(arguments['all_data'])
                   | 'parse_csv' >> beam.Map(lambda line: line.split(','))
+                  | 'read_img' >> beam.Map(lambda x: (read_image(x[0]), x[1])))
+        
+        # tf.transform preprocessing
+        # note that our preprocessing is simply to resize the images
+        # so there is no need to be careful to run analysis only on training data       
+        raw_dataset = (img_labels, 
+                       tft.tf_metadata.dataset_metadata.DatasetMetadata()
+                      )
+        transformed_img_labels, transform_fn = (
+            raw_dataset | 'tft_img' >> tft_beam.AnalyzeAndTransformDataset(tft_preprocess)
+        )
+       
+        # write the cropped images
+        splits = (transformed_img_labels
                   | 'create_tfr' >> beam.Map(lambda x: create_tfrecord(
                     x[0], x[1], LABELS.index(x[1])))
                   | 'assign_ds' >> beam.Map(assign_record_to_split)
@@ -186,6 +217,12 @@ if __name__ == '__main__':
         for split in ['train', 'valid', 'test']:
             write_records(OUTPUT_DIR, splits, split)
        
+        # make sure to write out a SavedModel with the tf transforms that were carried out
+        _ = (
+            transform_fn | 'write_tft' >> tft_beam.WriteTransformFn(
+                os.path.join(OUTPUT_DIR, 'tft'))
+        )
+    
         if on_cloud:
             print("Submitting {} job: {}".format(RUNNER, JOBNAME))
             print("Monitor at https://console.cloud.google.com/dataflow/jobs")
