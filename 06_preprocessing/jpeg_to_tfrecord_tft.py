@@ -189,7 +189,8 @@ if __name__ == '__main__':
         'max_num_workers': 20, # autoscale up to 20
         'region': arguments['region'],
         'teardown_policy': 'TEARDOWN_ALWAYS',
-        'save_main_session': True
+        'save_main_session': True,
+        'requirements_file': 'requirements.txt'
     }
     opts = beam.pipeline.PipelineOptions(flags=[], **options)
 
