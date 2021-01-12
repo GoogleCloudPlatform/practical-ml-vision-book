@@ -50,24 +50,30 @@ def _int64_feature(value):
 def _float_feature(value):
     return tf.train.Feature(float_list=tf.train.FloatList(value=value))
 
-def tft_preprocess(img, label):
-    print(filename)
+def decode_image(img_bytes):
     IMG_CHANNELS = 3
-    img = tf.image.decode_jpeg(img, channels=IMG_CHANNELS)
+    return tf.image.decode_jpeg(img_bytes, channels=IMG_CHANNELS)
+
+#@tf.function
+def tft_preprocess(img_record):    
+    # tft_preprocess gets a batch, but decode_jpeg can only read individual files
+    img = tf.map_fn(decode_image, img_record['img_bytes'],
+                    fn_output_signature=tf.uint8)
+    
     img = tf.image.convert_image_dtype(img, tf.float32)
     img = tf.image.resize_with_pad(img, IMG_HEIGHT, IMG_WIDTH)
-    img = tf.reshape(img, [-1]) # flatten to 1D array
-    return img, label
+    return {
+        'image': img,
+        'label': img_record['label'],
+        'label_int': img_record['label_int']
+    }
 
-def read_image(filename):
-    return tf.io.read_file(filename)
-
-def create_tfrecord(img, label, label_int):
-    return tf.train.Example(features=tf.train.Features(feature={
-        'image': _float_feature(img),
-        'label': _string_feature(label),
-        'label_int': _int64_feature([label_int])
-    })).SerializeToString()
+def create_input_record(filename, label, LABELS):
+    return {
+        'img_bytes': tf.io.read_file(filename),
+        'label': label,
+        'label_int': LABELS.index(label)
+    }
 
 def assign_record_to_split(rec):
     rnd = np.random.rand()
@@ -154,10 +160,7 @@ if __name__ == '__main__':
         shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
         os.makedirs(OUTPUT_DIR)
    
-    # Use eager execution in DirectRunner, but @tf.function in DataflowRunner
-    # See https://www.tensorflow.org/guide/function
-    print(tf.__version__)
-    #tf.config.run_functions_eagerly(not on_cloud)
+    # tf.config.run_functions_eagerly(not on_cloud)
 
     # read list of labels
     with tf.io.gfile.GFile(arguments['labels_file'], 'r') as f:
@@ -191,40 +194,48 @@ if __name__ == '__main__':
     opts = beam.pipeline.PipelineOptions(flags=[], **options)
 
     with beam.Pipeline(RUNNER, options=opts) as p:
-      with tft_beam.Context(temp_dir=tempfile.mkdtemp()):
-        img_labels = (p
-                  | 'read_csv' >> beam.io.ReadFromText(arguments['all_data'])
-                  | 'parse_csv' >> beam.Map(lambda line: line.split(','))
-                  | 'read_img' >> beam.Map(lambda x: (read_image(x[0]), x[1])))
-        
-        # tf.transform preprocessing
-        # note that our preprocessing is simply to resize the images
-        # so there is no need to be careful to run analysis only on training data       
-        raw_dataset = (img_labels, 
-                       tft.tf_metadata.dataset_metadata.DatasetMetadata()
-                      )
-        transformed_img_labels, transform_fn = (
-            raw_dataset | 'tft_img' >> tft_beam.AnalyzeAndTransformDataset(tft_preprocess)
-        )
-       
-        # write the cropped images
-        splits = (transformed_img_labels
-                  | 'create_tfr' >> beam.Map(lambda x: create_tfrecord(
-                    x[0], x[1], LABELS.index(x[1])))
-                  | 'assign_ds' >> beam.Map(assign_record_to_split)
-                  )
+        with tft_beam.Context(temp_dir=tempfile.mkdtemp()):
+            img_records = (p
+                      | 'read_csv' >> beam.io.ReadFromText(arguments['all_data'])
+                      | 'parse_csv' >> beam.Map(lambda line: line.split(',')) 
+                      | 'img_record' >> beam.Map(
+                          lambda x: create_input_record(x[0], x[1], LABELS)))
 
-        for split in ['train', 'valid', 'test']:
-            write_records(OUTPUT_DIR, splits, split)
-       
-        # make sure to write out a SavedModel with the tf transforms that were carried out
-        _ = (
-            transform_fn | 'write_tft' >> tft_beam.WriteTransformFn(
-                os.path.join(OUTPUT_DIR, 'tft'))
-        )
-    
-        if on_cloud:
-            print("Submitting {} job: {}".format(RUNNER, JOBNAME))
-            print("Monitor at https://console.cloud.google.com/dataflow/jobs")
-        else:
-            print("Running on DirectRunner. Please hold on ...")
+            # tf.transform preprocessing
+            # note that our preprocessing is simply to resize the images
+            # so there is no need to be careful to run analysis only on training data
+            RAW_DATA_METADATA = tft.tf_metadata.dataset_metadata.DatasetMetadata(
+                tft.tf_metadata.dataset_schema.schema_utils.schema_from_feature_spec({
+                    'img_bytes': tf.io.FixedLenFeature([], tf.string),
+                    'label': tf.io.FixedLenFeature([], tf.string),
+                    'label_int': tf.io.FixedLenFeature([], tf.int64)
+                })
+            )
+            raw_dataset = (img_records, RAW_DATA_METADATA)
+
+            transformed_dataset, transform_fn = (
+                raw_dataset | 'tft_img' >> tft_beam.AnalyzeAndTransformDataset(tft_preprocess)
+            )
+            transformed_data, transformed_metadata = transformed_dataset
+            transformed_data_coder = tft.coders.ExampleProtoCoder(transformed_metadata.schema)
+
+            # write the cropped images
+            splits = (transformed_data
+                      | 'create_tfr' >> beam.Map(transformed_data_coder.encode)
+                      | 'assign_ds' >> beam.Map(assign_record_to_split)
+                      )
+
+            for split in ['train', 'valid', 'test']:
+                write_records(OUTPUT_DIR, splits, split)
+
+            # make sure to write out a SavedModel with the tf transforms that were carried out
+            _ = (
+                transform_fn | 'write_tft' >> tft_beam.WriteTransformFn(
+                    os.path.join(OUTPUT_DIR, 'tft'))
+            )
+
+            if on_cloud:
+                print("Submitting {} job: {}".format(RUNNER, JOBNAME))
+                print("Monitor at https://console.cloud.google.com/dataflow/jobs")
+            else:
+                print("Running on DirectRunner. Please hold on ...")
