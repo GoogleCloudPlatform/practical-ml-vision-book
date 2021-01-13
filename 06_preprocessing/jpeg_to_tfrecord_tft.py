@@ -21,7 +21,7 @@ python3 -m jpeg_to_tfrecord_tft \
        --labels_file gs://cloud-ml-data/img/flower_photos/dict.txt \
        --project_id $PROJECT \
        --output_dir gs://${BUCKET}/data/flower_tfrecords \
-       --resize 224,224
+       --resize 448,448
 
 The format of the CSV files is:
     URL-of-image,label
@@ -42,7 +42,7 @@ import tensorflow_transform as tft
 import tensorflow_transform.beam as tft_beam
 from tfx_bsl.public import tfxio
 
-IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS = 224, 224, 3
+IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS = 448, 448, 3
 LABELS = []
 
 def _string_feature(value):
@@ -86,14 +86,14 @@ def write_records(OUTPUT_DIR, splits, split):
 
 def decode_image(img_bytes):
     img = tf.image.decode_jpeg(img_bytes, channels=IMG_CHANNELS)
-    img = tf.image.convert_image_dtype(img, tf.float32) # [0,1]
-    img = tf.image.resize_with_pad(img, IMG_HEIGHT, IMG_WIDTH)
     return img
 
 def tft_preprocess(img_record): 
     # tft_preprocess gets a batch, but decode_jpeg can only read individual files
     img = tf.map_fn(decode_image, img_record['img_bytes'],
                     fn_output_signature=tf.float32)
+    img = tf.image.convert_image_dtype(img, tf.float32) # [0,1]
+    img = tf.image.resize_with_pad(img, IMG_HEIGHT, IMG_WIDTH)
     return {
         'image': img,
         'label': img_record['label'],
@@ -258,7 +258,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--resize',
         help='Specify the img_height,img_width that you want images resized.',
-        default='224,224')
+        default='448,448')
     parser.add_argument(
         '--output_dir', help='Top-level directory for TF Records', required=True)
 
