@@ -40,6 +40,10 @@ import tensorflow as tf
 import numpy as np
 import tensorflow_transform as tft
 import tensorflow_transform.beam as tft_beam
+from tfx_bsl.public import tfxio
+
+IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS = 224, 224, 3
+LABELS = []
 
 def _string_feature(value):
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value.encode('utf-8')]))
@@ -53,27 +57,6 @@ def _float_feature(value):
 def decode_image(img_bytes):
     IMG_CHANNELS = 3
     return tf.image.decode_jpeg(img_bytes, channels=IMG_CHANNELS)
-
-#@tf.function
-def tft_preprocess(img_record):    
-    # tft_preprocess gets a batch, but decode_jpeg can only read individual files
-    img = tf.map_fn(decode_image, img_record['img_bytes'],
-                    fn_output_signature=tf.uint8)
-    
-    img = tf.image.convert_image_dtype(img, tf.float32)
-    img = tf.image.resize_with_pad(img, IMG_HEIGHT, IMG_WIDTH)
-    return {
-        'image': img,
-        'label': img_record['label'],
-        'label_int': img_record['label_int']
-    }
-
-def create_input_record(filename, label, LABELS):
-    return {
-        'img_bytes': tf.io.read_file(filename),
-        'label': label,
-        'label_int': LABELS.index(label)
-    }
 
 def assign_record_to_split(rec):
     rnd = np.random.rand()
@@ -100,41 +83,38 @@ def write_records(OUTPUT_DIR, splits, split):
              os.path.join(OUTPUT_DIR, split),
              file_name_suffix='.gz', num_shards=nshards)
         )
-        
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--all_data',
-        # pylint: disable=line-too-long
-        help=
-        'Path to input.  Each line of input has two fields  image-file-name and label separated by a comma',
-        required=True)
-    parser.add_argument(
-        '--labels_file',
-        help='Path to file containing list of labels, one per line',
-        required=True)
-    parser.add_argument(
-        '--project_id',
-        help='ID (not name) of your project. Ignored by DirectRunner',
-        required=True)
-    parser.add_argument(
-        '--runner',
-        help='If omitted, uses DataFlowRunner if output_dir starts with gs://',
-        default=None)
-    parser.add_argument(
-        '--region',
-        help='Cloud Region to run in. Ignored for DirectRunner',
-        default='us-central1')
-    parser.add_argument(
-        '--resize',
-        help='Specify the img_height,img_width that you want images resized.',
-        default='224,224')
-    parser.add_argument(
-        '--output_dir', help='Top-level directory for TF Records', required=True)
 
-    args = parser.parse_args()
-    arguments = args.__dict__
+def decode_image(img_bytes):
+    img = tf.image.decode_jpeg(img_bytes, channels=IMG_CHANNELS)
+    img = tf.image.convert_image_dtype(img, tf.float32) # [0,1]
+    img = tf.image.resize_with_pad(img, IMG_HEIGHT, IMG_WIDTH)
+    return img
 
+def tft_preprocess(img_record): 
+    # tft_preprocess gets a batch, but decode_jpeg can only read individual files
+    img = tf.map_fn(decode_image, img_record['img_bytes'],
+                    fn_output_signature=tf.float32)
+    return {
+        'image': img,
+        'label': img_record['label'],
+        'label_int': img_record['label_int']
+    }
+
+def create_input_record(filename, label):
+    label_list = label.to_pylist()
+    filename_list = filename.to_pylist()
+    assert len(filename_list) == 1 and len(filename_list[0]) == 1
+    assert len(label_list) == 1 and len(label_list[0]) == 1
+    contents = tf.io.read_file(filename_list[0][0]).numpy()
+    return {
+        'img_bytes': contents,
+        'label': label_list[0][0],
+        'label_int': LABELS.index(label_list[0][0].decode())
+    }
+
+def run_main(arguments):
+    global IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS, LABELS
+    
     JOBNAME = (
             'preprocess-images-' + datetime.datetime.now().strftime('%y%m%d-%H%M%S'))
 
@@ -194,25 +174,35 @@ if __name__ == '__main__':
     }
     opts = beam.pipeline.PipelineOptions(flags=[], **options)
 
+    RAW_DATA_SCHEMA = tft.tf_metadata.dataset_schema.schema_utils.schema_from_feature_spec({
+            'filename': tf.io.FixedLenFeature([], tf.string),
+            'label': tf.io.FixedLenFeature([], tf.string),
+        })
+    IMG_BYTES_METADATA = tft.tf_metadata.dataset_metadata.DatasetMetadata(
+        tft.tf_metadata.dataset_schema.schema_utils.schema_from_feature_spec({
+            'img_bytes': tf.io.FixedLenFeature([], tf.string),
+            'label': tf.io.FixedLenFeature([], tf.string),
+            'label_int': tf.io.FixedLenFeature([], tf.int64)
+        })
+    )
+    csv_tfxio = tfxio.CsvTFXIO(file_pattern=arguments['all_data'],
+                               column_names=['filename', 'label'],
+                               schema=RAW_DATA_SCHEMA,
+                               telemetry_descriptors=['standalone_tft'])
     with beam.Pipeline(RUNNER, options=opts) as p:
-        with tft_beam.Context(temp_dir=tempfile.mkdtemp()):
+        with tft_beam.Context(temp_dir=os.path.join(OUTPUT_DIR, 'tmp', 'beam_context')):
             img_records = (p
-                      | 'read_csv' >> beam.io.ReadFromText(arguments['all_data'])
-                      | 'parse_csv' >> beam.Map(lambda line: line.split(',')) 
+                      | 'read_csv' >> csv_tfxio.BeamSource(batch_size=1)
                       | 'img_record' >> beam.Map(
-                          lambda x: create_input_record(x[0], x[1], LABELS)))
+                          lambda x: create_input_record(x[0], x[1])))
 
             # tf.transform preprocessing
             # note that our preprocessing is simply to resize the images
             # so there is no need to be careful to run analysis only on training data
-            RAW_DATA_METADATA = tft.tf_metadata.dataset_metadata.DatasetMetadata(
-                tft.tf_metadata.dataset_schema.schema_utils.schema_from_feature_spec({
-                    'img_bytes': tf.io.FixedLenFeature([], tf.string),
-                    'label': tf.io.FixedLenFeature([], tf.string),
-                    'label_int': tf.io.FixedLenFeature([], tf.int64)
-                })
-            )
-            raw_dataset = (img_records, RAW_DATA_METADATA)
+
+            # Ideally, we could have done csv_tfxio.TensorAdapterConfig()
+            # but here, we are processing bytes, not the filenames we read from CSV
+            raw_dataset = (img_records, IMG_BYTES_METADATA)
 
             transformed_dataset, transform_fn = (
                 raw_dataset | 'tft_img' >> tft_beam.AnalyzeAndTransformDataset(tft_preprocess)
@@ -240,3 +230,39 @@ if __name__ == '__main__':
                 print("Monitor at https://console.cloud.google.com/dataflow/jobs")
             else:
                 print("Running on DirectRunner. Please hold on ...")
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--all_data',
+        # pylint: disable=line-too-long
+        help=
+        'Path to input.  Each line of input has two fields  image-file-name and label separated by a comma',
+        required=True)
+    parser.add_argument(
+        '--labels_file',
+        help='Path to file containing list of labels, one per line',
+        required=True)
+    parser.add_argument(
+        '--project_id',
+        help='ID (not name) of your project. Ignored by DirectRunner',
+        required=True)
+    parser.add_argument(
+        '--runner',
+        help='If omitted, uses DataFlowRunner if output_dir starts with gs://',
+        default=None)
+    parser.add_argument(
+        '--region',
+        help='Cloud Region to run in. Ignored for DirectRunner',
+        default='us-central1')
+    parser.add_argument(
+        '--resize',
+        help='Specify the img_height,img_width that you want images resized.',
+        default='224,224')
+    parser.add_argument(
+        '--output_dir', help='Top-level directory for TF Records', required=True)
+
+    args = parser.parse_args()
+    arguments = args.__dict__
+    
+    run_main(arguments)
