@@ -2,10 +2,21 @@
 
 MODEL_NAME=flowers
 VERSION_NAME=rest
+MODEL_LOCATION="gs://practical-ml-vision-book/flowers_5_trained"
+
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        -t|--version) VERSION_NAME="$2"; shift ;;
+        -u|--model_location) MODEL_LOCATION="$2"; shift ;;
+        *) echo "Unknown parameter passed: $1"; exit 1 ;;
+    esac
+    shift
+done
+
+echo "Deploying $MODEL_NAME:$VERSION_NAME from $MODEL_LOCATION"
 
 REGION='us-central1'  # make sure you have GPU/TPU quota in this region
 BUCKET='ai-analytics-solutions-kfpdemo' # for staging
-MODEL_LOCATION="gs://practical-ml-vision-book/flowers_5_trained"
 
 if [[ $(gcloud ai-platform models list --format='value(name)' | grep $MODEL_NAME) ]]; then
     echo "The model named $MODEL_NAME already exists."
