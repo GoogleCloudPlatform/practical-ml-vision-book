@@ -29,7 +29,7 @@ fi
 
 if [[ $(gcloud ai-platform versions list --region=$REGION --model $MODEL_NAME --format='value(name)' | grep $VERSION_NAME) ]]; then
     echo "Deleting already the existing model $MODEL_NAME:$VERSION_NAME ... "
-    gcloud ai-platform versions delete --region=$REGION --model=$MODEL_NAME $VERSION_NAME
+    gcloud ai-platform versions delete --quiet --region=$REGION --model=$MODEL_NAME $VERSION_NAME
     echo "Please run this script again if you don't see a Creating message ... "
     sleep 2
 fi
