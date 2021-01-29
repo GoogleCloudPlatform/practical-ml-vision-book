@@ -1,9 +1,12 @@
 #!/bin/bash
 
 MODEL_NAME=flowers_regional
-VERSION_NAME=ig
 MODEL_LOCATION="gs://practical-ml-vision-book/flowers_5_trained"
+VERSION_NAME=ig
 EXPLAIN="--explanation-method integrated-gradients --num-integral-steps 25"
+REGION='us-central1'  # make sure you have GPU/TPU quota in this region
+BUCKET='ai-analytics-solutions-kfpdemo' # CHANGE! for staging
+
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
@@ -14,10 +17,11 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-echo "Deploying $MODEL_NAME:$VERSION_NAME from $MODEL_LOCATION"
+if [[ "$VERSION_NAME" -eq "xrai" ]]; then
+   EXPLAIN="--explanation-method xrai --num-integral-steps 25"
+fi
 
-REGION='us-central1'  # make sure you have GPU/TPU quota in this region
-BUCKET='ai-analytics-solutions-kfpdemo' # for staging
+echo "Deploying $MODEL_NAME:$VERSION_NAME with $EXPLAIN from $MODEL_LOCATION"
 
 if [[ $(gcloud ai-platform models list --region=$REGION --format='value(name)' | grep $MODEL_NAME) ]]; then
     echo "The model named $MODEL_NAME already exists."
@@ -38,6 +42,6 @@ fi
 echo "Creating $MODEL_NAME:$VERSION_NAME $EXPLAIN"
 gcloud beta ai-platform versions create --model=$MODEL_NAME $VERSION_NAME --async \
        --region=$REGION  --machine-type n1-standard-4 \
-       --framework=tensorflow --python-version=3.7 --runtime-version=2.3 \
+       --framework=tensorflow --python-version=3.7 --runtime-version=2.1 \
        --origin=$MODEL_LOCATION --staging-bucket=gs://$BUCKET $EXPLAIN
        
