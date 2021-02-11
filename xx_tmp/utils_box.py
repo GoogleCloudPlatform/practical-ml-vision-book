@@ -384,6 +384,18 @@ def find_non_intersecting_rois(tiles, rois):
     return rois_per_tile, is_roi_in_tile
 
 
+# tiles shape [n_tiles, 4] coordinates (x1, y1, x2, y2) in aerial image coordinates
+# rois shape [n_rois, 4] coordinates (x1, y1, x2, y2) in aerial image coordinates
+# output: shape [n_tiles, max_per_tile, 4] in aerial image coordinates. Roi list padded with empty ROIs.
+def find_fully_intersecting_rois(tiles, rois):
+    n_tiles = tf.shape(tiles)[0]
+    # compute which rois are contained in which tiles
+    rois_per_tile = tf.expand_dims(rois, axis=0)  # shape [1, n_rois, 4]
+    rois_per_tile = tf.tile(rois_per_tile, [n_tiles, 1, 1])  # shape [n_tiles, n_rois, 4]
+    is_roi_in_tile = tf.map_fn(lambda tiles_rois: boxintersect(*tiles_rois, 1.0), (tiles, rois_per_tile), dtype=bool)  # shapes [n_tiles, n_rois]
+    return rois_per_tile, is_roi_in_tile
+
+
 # rois shape [batch, n_rois, 4] coordinates (x1, y1, x2, y2) in aerial image coordinates
 # output: shape [batch, max_per_tile, 4] in aerial image coordinates. Roi list padded with empty ROIs.
 def remove_empty_rois_and_pad(rois, max_per_tile):
