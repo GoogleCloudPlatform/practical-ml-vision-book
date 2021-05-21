@@ -8,6 +8,6 @@ by Valliappa Lakshmanan, Martin Gorner, Ryan Gillard
 
 Now available in early release
 
-Estimated publish data: July 2021
+Estimated publish date: July 2021
 
 ** This is not an official Google product **
