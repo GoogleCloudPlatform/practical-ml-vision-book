@@ -1,6 +1,6 @@
 # Practical Machine Learning for Computer Vision
 
-<a href="https://learning.oreilly.com/library/view/practical-machine-learning/9781098102357/"><img src="bookcover.png" height="200" /></a>
+<a href="https://learning.oreilly.com/library/view/practical-machine-learning/9781098102357/"><img src="bookcover.jpg" height="200" /></a>
 
 Open-sourced code from the O'Reilly book
 <a href="https://learning.oreilly.com/library/view/practical-machine-learning/9781098102357/">Practical Machine Learning for Computer Vision</a>
