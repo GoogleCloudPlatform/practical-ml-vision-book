@@ -12,12 +12,12 @@
  TPUs are also available for free on [Colaboratory](https://colab.sandbox.google.com/github/GoogleCloudPlatform/training-data-analyst/blob/master/courses/fast-and-lean-data-science/07_Keras_Flowers_TPU_xception_fine_tuned_best.ipynb) (TPU v2-8)
  and [Kaggle](https://www.kaggle.com/mgornergoogle/five-flowers-with-keras-and-xception-on-tpu) (TPU v3-8).
  
-The TPU 101a are [explained here](https://www.kaggle.com/docs/tpu).
+TPU basics are [explained here](https://www.kaggle.com/docs/tpu).
 
 ## Detailed instructions for provisioning a notebook with a Cloud TPU accelerator
 
-Please use the above-mentioned script [create-tpu-deep-learning-vm.sh](https://raw.githubusercontent.com/GoogleCloudPlatform/training-data-analyst/master/courses/fast-and-lean-data-science/create-tpu-deep-learning-vm.sh)
-to create an AI Platform Notebook VM along with a TPU in one go.
+Please use the script [create-tpu-deep-learning-vm.sh](https://raw.githubusercontent.com/GoogleCloudPlatform/training-data-analyst/master/courses/fast-and-lean-data-science/create-tpu-deep-learning-vm.sh)
+to create a Vertex AI Notebook VM along with a TPU in one go.
 The script ensures that both your VM and the TPU have the same version of Tensorflow. Detailed steps:
 
  * Go to [Google cloud console](https://console.cloud.google.com/), create a new project with billing enabled.
@@ -30,6 +30,7 @@ The script ensures that both your VM and the TPU have the same version of Tensor
  Select a zone that has v3-8, v2-32, v2-8 or v3-32 availability depending on what you want to test.
  * run the TPU and VM creation script:<br/>
  `./create-tpu-deep-learning-vm.sh choose-a-name --tpu-type v3-8`
+ * Warning: most Tensorflow versions are available for TPU but sometimes a specific major.minor version nuber is required. For example, 2.3 or 2.4.2 will work but 2.4 will not.
  * When the machines are up, go to [Google cloud console](https://console.cloud.google.com/) Vertex AI > Notebooks
  and click OPEN JUPYTERLAB in front of the VM you just created.
  * Once in Jupyter, open a terminal and clone this repository:<br/>
