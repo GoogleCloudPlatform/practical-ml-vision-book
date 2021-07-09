@@ -5,12 +5,14 @@
  You can  provision a TPU-accelerated notebook on Google's Vertex AI Platform. This script sums up the necessary gcloud commands:
  [create-tpu-deep-learning-vm.sh](https://raw.githubusercontent.com/GoogleCloudPlatform/training-data-analyst/master/courses/fast-and-lean-data-science/create-tpu-deep-learning-vm.sh)
  
- Detailed instructions at the bottom of this page.
+ Detailed instructions below.
  
  Cloud AI Platform notebooks work with TPU and TPU pods up to the largest TPUv3-2048 pod with 2048 cores.
   
  TPUs are also available for free on [Colaboratory](https://colab.sandbox.google.com/github/GoogleCloudPlatform/training-data-analyst/blob/master/courses/fast-and-lean-data-science/07_Keras_Flowers_TPU_xception_fine_tuned_best.ipynb) (TPU v2-8)
  and [Kaggle](https://www.kaggle.com/mgornergoogle/five-flowers-with-keras-and-xception-on-tpu) (TPU v3-8).
+ 
+The TPU 101a are [explained here](https://www.kaggle.com/docs/tpu).
 
 ## Detailed instructions for provisioning a notebook with a Cloud TPU accelerator
 
@@ -28,16 +30,12 @@ The script ensures that both your VM and the TPU have the same version of Tensor
  Select a zone that has v3-8, v2-32, v2-8 or v3-32 availability depending on what you want to test.
  * run the TPU and VM creation script:<br/>
  `./create-tpu-deep-learning-vm.sh choose-a-name --tpu-type v3-8`
- * If you get an error about an unavailable IP range, just run the script again, it will pick another one.
- * When the machines are up, go to [Google cloud console](https://console.cloud.google.com/) AI Platform > Notebooks
+ * When the machines are up, go to [Google cloud console](https://console.cloud.google.com/) Vertex AI > Notebooks
  and click OPEN JUPYTERLAB in front of the VM you just created.
  * Once in Jupyter, open a terminal and clone this repository:<br/>
- `git clone https://github.com/GoogleCloudPlatform/training-data-analyst.git`
- * Open one of the demo notebooks using the file browser in Jupyter:<br/>
- `training-data-analyst/courses/fast-and-lean-data-science/07_Keras_Flowers_TPU_xception_fine_tuned_best.ipynb`
- * Run through all the cells.
- * you can also try the custom training loop example notebook:<br/>
- `training-data-analyst/courses/fast-and-lean-data-science/keras_flowers_customtrainloop_tf2.1.ipynb`
+ `git clone https://github.com/GoogleCloudPlatform/practical-ml-vision-book.git`
+
+You are ready to train on TPU. Any od the models in Chapet 3 and Chapter 4 support TPU training.
 
 TPU can also be provisioned manually in the [cloud console](https://console.cloud.google.com/). Go to
 Compute Engine > TPUs > CREATE TPU NODE. Use the version selector to select the same version of Tensorflow as the one in your VM.
