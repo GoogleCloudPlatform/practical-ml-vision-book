@@ -30,7 +30,7 @@ The script ensures that both your VM and the TPU have the same version of Tensor
  Select a zone that has v3-8, v2-32, v2-8 or v3-32 availability depending on what you want to test.
  * run the TPU and VM creation script:<br/>
  `./create-tpu-deep-learning-vm.sh choose-a-name --tpu-type v3-8`
- * You can specify a Tensorflow version with `--version=2.5.0` or use `--nightly`. most Tensorflow versions are available for TPU but sometimes a specific major.minor version nuber is required. For example, 2.3 or 2.4.2 will work but 2.4 will not.
+ * You can specify a Tensorflow version with `--version=2.5.0` or use `--nightly`. Most Tensorflow versions are available for TPU but sometimes a specific major.minor version nuber is required. For example, 2.3 or 2.4.2 will work but 2.4 will not.
  * When the machines are up, go to [Google cloud console](https://console.cloud.google.com/) Vertex AI > Notebooks
  and click OPEN JUPYTERLAB in front of the VM you just created.
  * Once in Jupyter, open a terminal and clone this repository:<br/>
