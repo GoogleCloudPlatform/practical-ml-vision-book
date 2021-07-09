@@ -1,6 +1,6 @@
 # How to use TPUs (Tensor Processing Units)
  
- ## TPU-accelerated notebooks for professional data scientists
+ ## TPU-accelerated notebooks
  
  You can  provision a TPU-accelerated notebook on Google's Vertex AI Platform. This script sums up the necessary gcloud commands:
  [create-tpu-deep-learning-vm.sh](https://raw.githubusercontent.com/GoogleCloudPlatform/training-data-analyst/master/courses/fast-and-lean-data-science/create-tpu-deep-learning-vm.sh)
