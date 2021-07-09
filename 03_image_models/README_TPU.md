@@ -43,4 +43,4 @@ Compute Engine > TPUs > CREATE TPU NODE. Use the version selector to select the 
 The script does the same thing but on the command line using the two
 gcloud commands for creating a VM and a TPU. It adds a couple of perks:
 the VM supports Jupyter notebooks out of the box, it has the TPU_NAME environment variable set pointing to your TPU,
-and it can be upgraded to tf-nightly if you need cutting edge tech: add the --nightly parameter when you run the script.
+and it can be upgraded to tf-nightly if you need cutting edge tech: add the `--nightly` parameter when you run the script.
