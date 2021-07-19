@@ -10,7 +10,7 @@ implementation:
   container:
     image: gcr.io/ai-analytics-solutions/practical-ml-vision-book:latest
     command: [
-        "bash", "/src/practical-ml-vision-book/07_training/components/train_model_kfp.sh", 
+        "bash", "/src/practical-ml-vision-book/10_mlops/components/train_model_kfp.sh", 
     ]
     args: [
         {inputValue: input_topdir},
