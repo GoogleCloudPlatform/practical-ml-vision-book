@@ -10,10 +10,10 @@ import os, shutil, subprocess
 import tensorflow as tf
 
 def cleanup_dir(OUTPUT_DIR):
-    on_cloud = OUTPUT_DIR.startswith('gs://')
+    on_cloud = OUTPUT_DIR.startswith("gs://")
     if on_cloud:
         try:
-            subprocess.check_call('gsutil -m rm -r {}'.format(OUTPUT_DIR).split())
+            subprocess.check_call("gsutil -m rm -r {}".format(OUTPUT_DIR).split())
         except subprocess.CalledProcessError:
             pass
     else:
@@ -29,23 +29,22 @@ def create_strategy(mode):
     * tpu_colab
     * tpu_caip
     * the actual name of the cloud_tpu
-    If you are using TPUs, this methods has to be the very first thing you do.
+    If you are using TPUs, this method has to be the very first thing you do.
     """
-    if mode == 'cpu':
-        return tf.distribute.OneDeviceStrategy('/cpu:0')
-    
-    if mode == 'gpus_one_machine':
-        print('Using {} GPUs'.format(len(tf.config.experimental.list_physical_devices("GPU"))))
+    if mode == "cpu":
+        print("Using CPU.")
+        return tf.distribute.OneDeviceStrategy("/cpu:0")
+    elif mode == "gpus_one_machine":
+        print("Using {} GPUs".format(len(tf.config.experimental.list_physical_devices("GPU"))))
         return tf.distribute.MirroredStrategy()
-    
-    if mode == 'gpus_multiple_machines':
+    elif mode == "gpus_multiple_machines":
         print("Using TFCONFIG=", os.environ["TF_CONFIG"])
         return tf.distribute.experimental.MultiWorkerMirroredStrategy()
     
     # treat as tpu
-    if mode == 'tpu_colab':
-        tpu_name = 'grpc://' + os.environ['COLAB_TPU_ADDR']
-    elif mode == 'tpu_caip':
+    if mode == "tpu_colab":
+        tpu_name = "grpc://" + os.environ["COLAB_TPU_ADDR"]
+    elif mode == "tpu_caip":
         tpu_name = None
     else:
         tpu_name = mode
@@ -54,5 +53,5 @@ def create_strategy(mode):
     tf.config.experimental_connect_to_cluster(resolver)
     # TPUs wipe out memory, so this has to be at very start of program
     tf.tpu.experimental.initialize_tpu_system(resolver)
-    print("All devices: ", tf.config.list_logical_devices('TPU'))
+    print("All devices: ", tf.config.list_logical_devices("TPU"))
     return tf.distribute.TPUStrategy(resolver)

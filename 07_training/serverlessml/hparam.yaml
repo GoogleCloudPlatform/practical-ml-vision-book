@@ -1,41 +1,56 @@
-trainingInput:
-  scaleTier: CUSTOM
-  masterType: n1-standard-4  # or n1-highcpu-16 
-  masterConfig:
-    acceleratorConfig:
-      count: 2
-      type: NVIDIA_TESLA_T4
-  hyperparameters:
+displayName: "FlowersHpTuningJob"
+maxTrialCount: 50
+parallelTrialCount: 2
+studySpec:
+  metrics:
+  - metricId: accuracy
     goal: MAXIMIZE
-    hyperparameterMetricTag: accuracy
-    maxTrials: 50
-    maxParallelTrials: 2
-    enableTrialEarlyStopping: True
-    params:
-    - parameterName: l2
-      type: DOUBLE
+  parameters:
+  - parameterId: l2
+    scaleType: UNIT_LINEAR_SCALE
+    doubleValueSpec:
       minValue: 0
       maxValue: 0.2
-      scaleType: UNIT_LINEAR_SCALE
-    - parameterName: batch_size
-      type: DISCRETE
-      discreteValues:
+  - parameterId: batch_size
+    scaleType: SCALE_TYPE_UNSPECIFIED
+    discreteValueSpec:
+      values:
       - 16
       - 32
       - 64
-    - parameterName: num_hidden
-      type: DISCRETE
-      discreteValues:
+  - parameterId: num_hidden
+    scaleType: SCALE_TYPE_UNSPECIFIED
+    discreteValueSpec:
+      values:
       - 8
       - 16
       - 24
-    - parameterName: with_color_distort
-      type: DISCRETE
-      discreteValues:
+  - parameterId: with_color_distort
+    scaleType: SCALE_TYPE_UNSPECIFIED
+    discreteValueSpec:
+      values:
       - False
       - True
-    - parameterName: crop_ratio
-      type: DOUBLE
+  - parameterId: crop_ratio
+    scaleType: UNIT_LINEAR_SCALE
+    doubleValueSpec:
       minValue: 0.5
       maxValue: 0.8
-      scaleType: UNIT_LINEAR_SCALE   
+  algorithm: ALGORITHM_UNSPECIFIED
+trialJobSpec:
+  baseOutputDirectory:
+    outputUriPrefix: gs://{BUCKET}/flowers_trained/hptune  # TODO: Add your bucket!
+  workerPoolSpecs:
+  - machineSpec:
+      machineType: n1-standard-4
+      acceleratorType: NVIDIA_TESLA_T4
+      acceleratorCount: 2
+    replicaCount: 1
+  pythonPackageSpec:
+    executorImageUri: us-docker.pkg.dev/vertex-ai/training/tf-cpu.2-4:latest
+    packageUris: gs://{BUCKET}/flowers-1.0.tar.gz  # TODO: Add your bucket!
+    pythonModule: flowers.classifier.train
+    args: 
+    - --pattern="-*"
+    - --num_epochs=20
+    - --distribute="cpu"

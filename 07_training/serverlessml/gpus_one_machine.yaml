@@ -1,7 +1,15 @@
-trainingInput:
-  scaleTier: CUSTOM
-  masterType: n1-standard-4  # or n1-highcpu-16 
-  masterConfig:
-    acceleratorConfig:
-      count: 2
-      type: NVIDIA_TESLA_T4
+workerPoolSpecs:
+  machineSpec:
+    machineType: n1-standard-4
+    acceleratorType: NVIDIA_TESLA_T4
+    acceleratorCount: 2
+  replicaCount: 1
+  pythonPackageSpec:
+    executorImageUri: us-docker.pkg.dev/vertex-ai/training/tf-gpu.2-4:latest
+    packageUris: gs://{BUCKET}/flowers-1.0.tar.gz  # TODO: Add your bucket!
+    pythonModule: flowers.classifier.train
+    args:
+    - --job-dir="gs://{BUCKET}/flowers_trained/gpus_one_machine"  # TODO: Add your bucket!
+    - --pattern="-*"
+    - --num_epochs=20
+    - --distribute="gpus_one_machine"
