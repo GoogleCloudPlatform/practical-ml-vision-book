@@ -13,7 +13,7 @@ implementation:
   container:
     image: gcr.io/ai-analytics-solutions/practical-ml-vision-book:latest
     command: [
-        "bash", "/src/practical-ml-vision-book/07_training/components/create_dataset.sh"
+        "bash", "/src/practical-ml-vision-book/10_mlops/components/create_dataset.sh"
     ]
     args: [
         {inputValue: output_dir},
