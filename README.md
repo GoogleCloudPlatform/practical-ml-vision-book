@@ -66,6 +66,7 @@ In the textbox, type in: https://github.com/GoogleCloudPlatform/practical-ml-vis
 Note: An alternative way to clone the repository is to launch a Terminal and then type:
 ```git clone https://github.com/GoogleCloudPlatform/practical-ml-vision-book```
 
+<b>You may encounter an out of memory error with GPU if you execute multiple notebooks with Vertex AI Notebook. To avoid it, select "Shut Down All Kernels..." from the Kernel menu before excuting a new notebook.</b>
 
 ## 2. Train a Transfer Learning model
 
