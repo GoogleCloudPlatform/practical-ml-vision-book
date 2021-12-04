@@ -14,6 +14,8 @@ by Valliappa Lakshmanan, Martin Gorner, Ryan Gillard
 
 # Quick tour through the book
 
+For a full tour of the book, see Full Tour (below)
+
 Machine learning on images is revolutionizing healthcare, manufacturing, retail, and many other sectors. Many previously difficult problems can now be solved by training machine learning models to identify objects in images. Our aim in the book Practical Machine Learning for Computer Vision was to provide intuitive explanations of the ML architectures that underpin this fast-advancing field, and to provide practical code to employ these ML models to solve practical problems involving classification, measurement, detection, segmentation, representation, generation, counting, and more.
 
 Image classification is the “hello world” of deep learning. Therefore, this codelab also provides a practical end-to-end introduction to deep learning. It can serve as a stepping stone to other deep learning domains such as natural language processing. For more details, of course, we encourage you to read the book.
@@ -31,7 +33,7 @@ We will show you how to:
 
 <b> We recommend creating a brand new GCP project to try these out. Then, delete the project when you are done, to make sure that all resources have been deleted. </b>
 
-## 1. Setup a Vertex AI Notebook instance
+## 1. Setup a Vertex AI Workbench instance
 
 ### Ensure that you have GPU quota
 
@@ -43,9 +45,9 @@ Note: If you want, you can do this lab with only a CPU and not a GPU. Training w
 
 ### Navigate to Notebook creation part of GCP console
 
-Visit the GCP console at https://console.cloud.google.com/ and navigate to Vertex AI | Notebooks. You can also navigate to it directly by visiting https://console.cloud.google.com/vertex-ai/notebooks/list/instances 
+Visit the GCP console at https://console.cloud.google.com/ and navigate to Vertex AI | Workbench. You can also navigate to it directly by visiting https://console.cloud.google.com/vertex-ai/workbench 
 
-Click on +New Instance at the top of the page. Then, select the latest TensorFlow Enterprise version available with one GPU.
+Click on +New Instance at the top of the page. Then, select TensorFlow Enterprise 2.6 with Tesla T4.
 
 ### Create a Notebook instance
 
@@ -213,5 +215,84 @@ Wait for the workflow to complete.
 
 ## Congratulations
 Congratulations, you've successfully built an end-to-end machine learning model for image classification.
+
+
+# Full tour of book
+
+For a shorter exploration, see Quick Tour (above)
+
+<b> We recommend creating a brand new GCP project to try these out. Then, delete the project when you are done, to make sure that all resources have been deleted. </b>
+
+## 1. Setup a Vertex AI Notebook instance
+
+### Ensure that you have GPU quota
+
+Visit the GCP console at https://console.cloud.google.com/ and navigate to IAM & Admin | Quotas. You can also navigate to it directly by visiting https://console.cloud.google.com/google.com/iam-admin/quotas 
+
+In the Filter, start typing Nvidia and choose NVIDIA T4 GPUs. Make sure you have a region with a limit greater than zero. If not, please request a quota increase.
+
+### Navigate to Vertex Workbench creation part of GCP console
+
+Visit the GCP console at https://console.cloud.google.com/ and navigate to Vertex AI | Vertex Workbench. You can also navigate to it directly by visiting https://console.cloud.google.com/vertex-ai/workbench/
+
+Click on +New Instance at the top of the page. Then, select the TensorFlow Enterprise 2.6 with Nvidia Tesla T4.
+
+### Create a Notebook instance
+
+Name the instance mlvision-book-gpu
+
+Click on the checkbox to install the Nvidia driver automatically. Make sure to check the box to install the Nvidia driver. If you missed it, delete the instance and start again. 
+
+Click on Advanced
+
+Change Machine Type to n1-highmem-4
+
+Change GPU Type to Nvidia Tesla T4
+
+Change Disk | Data Disk Type to 300 GB
+
+Change Permission | Single User | your email address
+
+Click Create to accept the other defaults.
+
+This step will take about 10 minutes. 
+
+### Create a Cloud Storage bucket
+
+Navigate to the Storage section of the GCP console: https://console.cloud.google.com/storage/browser and create a bucket. 
+I suggest naming the bucket ${PROJECT}-mlvisionbook
+The console will not allow you to create a bucket with a name that already exists.
+
+The bucket should be in the same region as your notebook instance.
+
+### Clone the book’s code repository
+
+Go to the Vertex Workbench section of the GCP console.
+Click on the link to Open JupyterLab
+
+In JupyterLab, click on the git clone button (the right-most button at the top of the left panel). 
+In the textbox, type in: https://github.com/GoogleCloudPlatform/practical-ml-vision-book 
+Note: An alternative way to clone the repository is to launch a Terminal and then type:
+```git clone https://github.com/GoogleCloudPlatform/practical-ml-vision-book```
+
+### Run through the notebooks
+
+* In JupyterLab, navigate to the folder practical-ml-vision-book/02_ml_models
+* Run the notebook 02a, then run notebook 02b
+* Then navigate to Chapter 3.  Run *only* the flowers5 notebooks in this folder.
+  * Many of the flowers104 notebooks will require a more powerful machine.
+    We did these notebooks using TPUs. See README_TPU.md for details.
+    You can try adding more GPUs if you don't have access to TPUs.
+  * Explore the flowers104 notebooks as and when you need to explore the specific backbone architecture.
+* In Chapter 4, unet segmentation will work on a T4. Skip the other notebooks unless you have a TPU.
+* In Chapter 5, you can run the notebooks in any order.
+* In Chapter 6, run the notebooks in order.
+* In Chapter 7, run the notebooks in order.
+* In Chapter 9, run the notebooks in order. This chapter depends on Chapter 7.
+* In Chapter 10, run the notebooks in order.
+* In Chapter 11, run the notebooks in order.
+* In Chapter 12, run the notebooks in order.
+
+
 
 Feedback? Please file an Issue in the GitHub repo.
