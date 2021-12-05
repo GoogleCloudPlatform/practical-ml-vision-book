@@ -223,21 +223,19 @@ For a shorter exploration, see Quick Tour (above)
 
 <b> We recommend creating a brand new GCP project to try these out. Then, delete the project when you are done, to make sure that all resources have been deleted. </b>
 
-## 1. Setup a Vertex AI Notebook instance
-
-### Ensure that you have GPU quota
+### 1. Ensure that you have GPU quota
 
 Visit the GCP console at https://console.cloud.google.com/ and navigate to IAM & Admin | Quotas. You can also navigate to it directly by visiting https://console.cloud.google.com/google.com/iam-admin/quotas 
 
 In the Filter, start typing Nvidia and choose NVIDIA T4 GPUs. Make sure you have a region with a limit greater than zero. If not, please request a quota increase.
 
-### Navigate to Vertex Workbench creation part of GCP console
+### 2. Navigate to Vertex Workbench creation part of GCP console
 
 Visit the GCP console at https://console.cloud.google.com/ and navigate to Vertex AI | Vertex Workbench. You can also navigate to it directly by visiting https://console.cloud.google.com/vertex-ai/workbench/
 
 Click on +New Instance at the top of the page. Then, select the TensorFlow Enterprise 2.6 with Nvidia Tesla T4.
 
-### Create a Notebook instance
+### 3. Create a Notebook instance
 
 Name the instance mlvision-book-gpu
 
@@ -257,13 +255,13 @@ Click Create to accept the other defaults.
 
 This step will take about 10 minutes. 
 
-### Create a Cloud Storage bucket
+### 4. Create a Cloud Storage bucket
 
 Navigate to the Storage section of the GCP console: https://console.cloud.google.com/storage/browser and create a bucket. 
 The console will not allow you to create a bucket with a name that already exists.
 The bucket should be in the same region as your notebook instance.
 
-### Clone the book’s code repository
+### 5. Clone the book’s code repository
 
 Go to the Vertex Workbench section of the GCP console.
 Click on the link to Open JupyterLab
@@ -273,7 +271,7 @@ In the textbox, type in: https://github.com/GoogleCloudPlatform/practical-ml-vis
 Note: An alternative way to clone the repository is to launch a Terminal and then type:
 ```git clone https://github.com/GoogleCloudPlatform/practical-ml-vision-book```
 
-### Run through the notebooks
+### 6. Run through the notebooks
 
 * In JupyterLab, navigate to the folder practical-ml-vision-book/02_ml_models
 * Open the notebook 02a.  
