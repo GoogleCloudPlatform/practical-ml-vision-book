@@ -288,16 +288,34 @@ Note: An alternative way to clone the repository is to launch a Terminal and the
   * Many of the flowers104 notebooks will require a more powerful machine. We did these notebooks using TPUs. See README_TPU.md for details. You can try adding more GPUs if you don't have access to TPUs but this has not been tested.
 * In Chapter 4
   * Unet segmentation will work on a T4.
-  * *Recommend Skipping this* Follow the Readme directions in the directory to try out RetinaNet. You'll need a high-bandwidth internet connection to download and upload the 12 GB dataset. Also, a Workbench instance with TensorFlow 2.7+ (not 2.6).
+  * *Works in TensorFlow 2.7+ only* Follow the Readme directions in the directory to try out RetinaNet. You'll need a high-bandwidth internet connection to download and upload the 12 GB dataset. Also, you need to create a new Workbench instance with TensorFlow 2.7+ (not 2.6).
 
 * In Chapter 5, you can run the notebooks in any order.
-* In Chapter 6, run the notebooks in order.
+* In Chapter 6:
+  * Change the BUCKET variable in run_dataflow.sh
+  * Run the notebooks in order.
+  * 6h, the TF Transform notebook, is broken (most likely a Python dependency problem)
+  
 * In Chapter 7, run the notebooks in order.
-* In Chapter 9, run the notebooks in order. This chapter depends on Chapter 7.
-* In Chapter 10, run the notebooks in order.
+  * In 7c, make sure to change the BUCKET where marked.
+* In Chapter 9, run the notebooks in order. 
+  * Make sure to change ENDPOINT_ID, BUCKET, etc. to reflect your environment.
+* In Chapter 10:
+  * Start a Kubeflow Pipelines Cluster by visiting https://console.cloud.google.com/marketplace/product/google-cloud-ai-platform/kubeflow-pipelines
+  * Make sure to allow access to Cloud Platform APIs from the cluster
+  * Once cluster has been started, click "Deploy"
+  * Once deployed, click on the link to go to the Kubeflow Pipelines console and look at the Settings
+  * Note the HOST string passed
+  * In JupyterLab, edit the KFPHOST variable in 10a to reflect the cluster that you just started
+  * Run 10a and 10b
 * In Chapter 11, run the notebooks in order.
 * In Chapter 12, run the notebooks in order.
 
+### Common issues that readers run into
+* <b>Out of memory.</b> Make sure that you have shut down all previous notebooks.
+* <b>AdamW not found.</b> Make sure that you restart the kernel when you start the notebook. AdamW has to be imported before first TensorFlow call.
+* <b>Bucket permissions problem</b> Make sure to change BUCKET variable to something you own.
+* <b>Weird GPU errors</b> Most likely, the GPU is out of memory. Please shut down other notebooks, restart kernel, and try again.
 
 
 Feedback? Please file an Issue in the GitHub repo.
