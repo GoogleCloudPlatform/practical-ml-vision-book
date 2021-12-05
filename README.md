@@ -260,9 +260,7 @@ This step will take about 10 minutes.
 ### Create a Cloud Storage bucket
 
 Navigate to the Storage section of the GCP console: https://console.cloud.google.com/storage/browser and create a bucket. 
-I suggest naming the bucket ${PROJECT}-mlvisionbook
 The console will not allow you to create a bucket with a name that already exists.
-
 The bucket should be in the same region as your notebook instance.
 
 ### Clone the book’s code repository
@@ -278,13 +276,20 @@ Note: An alternative way to clone the repository is to launch a Terminal and the
 ### Run through the notebooks
 
 * In JupyterLab, navigate to the folder practical-ml-vision-book/02_ml_models
-* Run the notebook 02a, then run notebook 02b
-* Then navigate to Chapter 3.  Run *only* the flowers5 notebooks in this folder.
-  * Many of the flowers104 notebooks will require a more powerful machine.
-    We did these notebooks using TPUs. See README_TPU.md for details.
-    You can try adding more GPUs if you don't have access to TPUs.
-  * Explore the flowers104 notebooks as and when you need to explore the specific backbone architecture.
-* In Chapter 4, unet segmentation will work on a T4. Skip the other notebooks unless you have a TPU.
+* Open the notebook 02a.  
+  * Edit | Clear All Outputs
+  * Read and run each cell one-by-one by typing Shift + Enter. (or click Run | Restart Kernel and Run All Cells) 
+  * Go to the list of running Terminals and Kernels (the second button from the top on the extreme left of JupyterLab)
+  * Stop the 02a notebook.  <b>Stop the Kernel every time you finish running a notebook.</b> Otherwise, you will run out of memory.
+* Now, open and run notebook 02b, and repeat steps listed above.
+* In Chapter 3, run *only* the flowers5 notebooks (3a and 3b on MobileNet).
+  * Run 3a_transfer_learning
+  * Run 3b_finetune_MOBILENETV2_flowers5 -- note that if AdamW is not found, you may have to restart the kernel. See instructions in notebook.
+  * Many of the flowers104 notebooks will require a more powerful machine. We did these notebooks using TPUs. See README_TPU.md for details. You can try adding more GPUs if you don't have access to TPUs but this has not been tested.
+* In Chapter 4
+  * Unet segmentation will work on a T4.
+  * *Recommend Skipping this* Follow the Readme directions in the directory to try out RetinaNet. You'll need a high-bandwidth internet connection to download and upload the 12 GB dataset. Also, a Workbench instance with TensorFlow 2.7+ (not 2.6).
+
 * In Chapter 5, you can run the notebooks in any order.
 * In Chapter 6, run the notebooks in order.
 * In Chapter 7, run the notebooks in order.
