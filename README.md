@@ -12,6 +12,13 @@ by Valliappa Lakshmanan, Martin Gorner, Ryan Gillard
 ** This is not an official Google product **
 
 
+# Color images
+
+Unfortunately, the print version of the book is not in color.
+For your convenience, all the images from the book can be found in the images folder
+of this repository.
+
+
 # Quick tour through the book
 
 For a full tour of the book, see Full Tour (below)
