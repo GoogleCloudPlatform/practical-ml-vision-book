@@ -14,8 +14,9 @@
 # please configure your login, project region and zone first by running the "gcloud init" command
 # region us-central1 zone us-central1-b usually have TPUs available
 
-DEFAULT_TF_VERSION="2.9.2" # WARNING: for TF 2.3, the DLVM release is tf2-2-3-cpu but contains TF 2.3.1
+DEFAULT_TF_VERSION="2.12.0" # WARNING: for TF 2.3, the DLVM release is tf2-2-3-cpu but contains TF 2.3.1
 IMAGE_FAMILY_PATTERN="tf-2-x-cpu"
+IMAGE_FAMILY_PATTERN_TF12_AND_ABOVE="tf-2-x-tpu-debian-11-py310"
 
 usage()
 {
@@ -23,11 +24,11 @@ usage()
     echo "The default machine type is n1-standard-8."
     echo "The default TPU type is v2-8."
     echo "The default Tensorflow version is $DEFAULT_TF_VERSION."
-    echo "Supported Tensorflow versions are 2.1, 2.1.4, 2.2, 2.2.3, 2.3, 2.3.4, 2.4.0 to 2.4.4, 2.5.0 to 2.5.2, 2.6.0, 2.7.0, 2.7.1, 2.7.3, 2.8.0, 2.8.2, 2.9.1  and nightly."
+    echo "Supported Tensorflow versions are 2.1, 2.1.4, 2.2, 2.2.3, 2.3, 2.3.4, 2.4.0 to 2.4.4, 2.5.0 to 2.5.2, 2.6.0, 2.7.0, 2.7.1, 2.7.3, 2.8.0, 2.8.2, 2.8.3, 2.8.4, 2.9.1, 2.9.2, 2.9.3, 2.11.0, 2.12.0  and nightly."
     echo "You can use \"--version nightly\" or \"--nightly\" to obtain a nightly version of Tensorflow on the VM and TPU."
     echo "Please run \"gcloud init\" befor this script to set your default zone."
     echo "Example:"
-    echo "./create-tpu-deep-learning-vm.sh my-machine --tpu-type v3-8 --version 2.3"
+    echo "./create-tpu-deep-learning-vm.sh my-machine --tpu-type v3-8 --version 2.12.0"
 }
 
 maj_min_version() # params: version. Return: sets global variable "maj_min_version"
@@ -52,7 +53,11 @@ create_vm() # params: machine_name, machine_type, tfnightly, version
         extra_install="./opt/conda/bin/pip install behave";
         maj_min_version "$4" # result in variable "maj_min_version". No sub-minor TF versions in DLVM images.
         vm_version=$maj_min_version
-        version_msg="$4";s
+        version_msg="$4";
+    fi
+    if [ ${vm_version#2.*} -ge 12 ]; # TF version greater or equal to 2.12 => different VM naming scheme
+    then
+        IMAGE_FAMILY_PATTERN=$IMAGE_FAMILY_PATTERN_TF12_AND_ABOVE;
     fi
     image_family=${IMAGE_FAMILY_PATTERN/2-x/${vm_version//./-}}
     echo "Creating VM named $1 of type $2 with Tensorflow $version_msg and image family $image_family. Check for it with \"gcloud compute instances list\""
