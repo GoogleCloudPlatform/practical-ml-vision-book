@@ -3,7 +3,7 @@
 REGION="us-central1"  # make sure you have GPU/TPU quota in this region
 ENDPOINT_NAME="flowers_endpoint"
 MODEL_NAME="flowers"
-MODEL_LOCATION="gs://practical-ml-vision-book/flowers_5_trained"
+MODEL_LOCATION="gs://practical-ml-vision-book-data/flowers_5_trained"
 IMAGE_URI="us-docker.pkg.dev/vertex-ai/prediction/tf2-cpu.2-1:latest"
 
 for i in "$@"
