@@ -126,7 +126,7 @@ Run the cell by clicking Shift + Enter
 View the progress of the Dataflow job by navigating to the GCP console section for Dataflow: https://console.cloud.google.com/dataflow/jobs 
 When the job completes, you will see 3 datasets created in the bucket.
 
-Note: This job will take about 20 minutes to complete, so we will do the next step starting from an already created dataset in the bucket gs://practical-ml-vision-book/
+Note: This job will take about 20 minutes to complete, so we will do the next step starting from an already created dataset in the bucket gs://practical-ml-vision-book-data/
 
 
 ## 4. Train and export a SavedModel

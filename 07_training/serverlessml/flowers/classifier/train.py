@@ -100,7 +100,7 @@ if __name__ == '__main__':
         '--job-dir', help='Top-level output directory', required=True)
     parser.add_argument(
         '--input_topdir', help='Top-level directory of the TF Records',
-        default='gs://practical-ml-vision-book/flowers_tfr'
+        default='gs://practical-ml-vision-book-data/flowers_tfr'
     )
     parser.add_argument(
         '--pattern', help='Files in {input_topdir}/train to read',

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 MODEL_NAME=flowers_regional
-MODEL_LOCATION="gs://practical-ml-vision-book/flowers_5_trained"
+MODEL_LOCATION="gs://practical-ml-vision-book-data/flowers_5_trained"
 VERSION_NAME=ig
 EXPLAIN="--explanation-method integrated-gradients --num-integral-steps 25"
 REGION='us-central1'  # make sure you have GPU/TPU quota in this region

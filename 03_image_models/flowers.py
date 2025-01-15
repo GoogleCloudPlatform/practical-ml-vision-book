@@ -13,7 +13,7 @@ except ValueError: # detect GPUs or multi-GPU machines
 
 print("REPLICAS: ", strategy.num_replicas_in_sync)
 
-GCS_DS_PATH = "gs://practical-ml-vision-book/flowers_104_tfr"
+GCS_DS_PATH = "gs://practical-ml-vision-book-data/flowers_104_tfr"
 
 # Settings for TPUv3. When running on hardware with less memory such as a TPUv2 (Colab)
 # or a GPU, you might have to use lower BATCH_SIZE and/or IMAGE_SIZE values.
