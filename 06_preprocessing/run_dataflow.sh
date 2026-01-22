@@ -7,7 +7,7 @@ INPUT=gs://practical-ml-vision-book-data/flowers_5_jpeg/flower_photos/all_data.c
 OUTPUT=gs://${BUCKET}/data/flowers_tftransform
 
 ## To run locally, uncomment these lines
-gsutil cat $INPUT | head -100 > /tmp/top.csv
+gcloud storage cat $INPUT | head -100 > /tmp/top.csv
 INPUT=/tmp/top.csv
 OUTPUT=./flower_tftransform
 

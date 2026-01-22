@@ -10,7 +10,7 @@ cd /src/practical-ml-vision-book/07_training/serverlessml
 PACKAGE_PATH="./flowers"
 MODULE_NAME="flowers.classifier.train"
 
-gsutil ls $INPUT_TOPDIR/train-00000-*
+gcloud storage ls $INPUT_TOPDIR/train-00000-*
 
 gcloud ai-platform local train \
         --package-path $PACKAGE_PATH \

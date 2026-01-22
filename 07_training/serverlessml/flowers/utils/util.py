@@ -13,7 +13,7 @@ def cleanup_dir(OUTPUT_DIR):
     on_cloud = OUTPUT_DIR.startswith("gs://")
     if on_cloud:
         try:
-            subprocess.check_call("gsutil -m rm -r {}".format(OUTPUT_DIR).split())
+            subprocess.check_call("gcloud storage rm --recursive {}".format(OUTPUT_DIR).split())
         except subprocess.CalledProcessError:
             pass
     else:

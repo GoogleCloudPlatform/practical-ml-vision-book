@@ -7,7 +7,7 @@ INPUT=gs://cloud-ml-data/img/flower_photos/all_data.csv
 OUTPUT=gs://${BUCKET}/data/flower_tfrecords
 
 ## To run locally, uncomment these lines
-#gsutil cat $INPUT | head -5 > /tmp/top.csv
+#gcloud storage cat $INPUT | head -5 > /tmp/top.csv
 #INPUT=/tmp/top.csv
 #OUTPUT=./flower_images
 

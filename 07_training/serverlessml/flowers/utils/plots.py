@@ -24,7 +24,7 @@ def training_plot(metrics, history, filename):
         with tempfile.TemporaryDirectory() as tmpdir:
             tmpfilename = os.path.join(tmpdir, "out.png")
             plt.savefig(tmpfilename)
-            subprocess.check_call('gsutil cp {} {}'.format(
+            subprocess.check_call('gcloud storage cp {} {}'.format(
                 tmpfilename, filename).split())
     else:
         plt.savefig(filename)
